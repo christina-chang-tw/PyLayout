@@ -1,22 +1,9 @@
-from dataclasses import dataclass
-
 import gdsfactory as gf
 from gdsfactory.technology import LayerLevel
 from gdsfactory.port import Port
 
 from pylayout.layers.cornerstone import SOI_220nm
 from pylayout.methods import Methods
-
-@dataclass
-class Info:
-    """
-    Storing information about a structure
-    """
-    width: float=None
-    cross_section: gf.cross_section.CrossSection=None
-    radius: float=None
-    layer: LayerLevel=None
-
 
 class Components(gf.Component):
     def __init__(self, cs: float=None):
@@ -125,43 +112,3 @@ class Components(gf.Component):
         Methods.add_ports(coupler, ["ls", "lb"], left_ref, ["o2", "o3"])
 
         return coupler
-
-
-
-
-
-
-def RAMZI_2x1_MZI():
-    base = gf.Component("Base")
-    outline = Components.outline(100, 100)
-
-    # create a cross-section
-    cs = Components.cross_section(layer=SOI_220nm.ETCH1)
-    comp = Components(cs=cs)
-
-    gap = [1, 2, 3, 4, 5]
-    obj_list = Methods.gen_objects(
-        gf.components.coupler_asymmetric,
-        gap=gap,
-        dx=5,
-        dy=5,
-        cross_section=cs
-    )
-
-    c = gf.grid(
-        obj_list, 
-        spacing=(10, 10),
-        shape=(len(obj_list), 1),
-        align_x="x",
-        align_y="y"
-    )
-        
-    base << outline
-    base << c
-
-    ref = gf.ComponentReference(base)
-    ref.center = (0, 0)
-    base.show()
-
-if __name__ == "__main__":
-    RAMZI_2x1_MZI()

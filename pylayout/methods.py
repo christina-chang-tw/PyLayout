@@ -16,7 +16,7 @@ class Methods:
         Connect two components with the given ports
 
         Args:
-            com1 [gf.ComponentReference]: gf.ComponentReference: component 1
+            com1 [gf.ComponentReference]: this component will be moved
             port1 [list]: list: list of ports of component 1
             com2 [gf.ComponentReference]: gf.ComponentReference: component 2
             port2 [list]: list: list of ports of component 2
@@ -50,6 +50,7 @@ class Methods:
     def symmetry(
         com: gf.Component,
         com1: gf.Component, # coponent to be symmetrized
+        name: str=None,
         *,
         p1: float=None,
         p2: float=None,
@@ -74,7 +75,8 @@ class Methods:
         Returns:
             gf.ComponentReference: reference to the symmetrized component
         """
-        com2 = com1.copy(name=f"{com1.name}_copy")
+        name = name if name is not None else f"{com1.name}_copy"
+        com2 = com1.copy(name=name)
         com2_ref = com.add_ref(com2)
         if p1 is not None and p2 is not None:
             com2_ref.mirror(p1, p2)
@@ -83,7 +85,29 @@ class Methods:
         if y0 is not None or yport is not None:
             com2_ref.mirror_y(y0=y0, port_name=yport)
 
-        return com2_ref
+        return com2, com2_ref
+
+    @staticmethod
+    def gen_copies(
+        com: gf.Component,
+        number: int,
+        names: List[str]=None,
+    ):
+        """
+        Generate copies of a component
+
+        Args:
+            com [gf.Component]: gf.Component: component to be copied
+            number [int]: int: number of copies to be generated
+            names [List[str]]: List[str]: list of names for the copies
+
+        Returns:
+            List[gf.ComponentReference]: list of references to the copied components
+        """
+        names = names if names is not None else [f"{com.name}_{i}" for i in range(number)]
+        copies = [com.copy(name=name) for name in names]
+        return copies
+
 
     @staticmethod
     def gen_objects(
@@ -100,6 +124,15 @@ class Methods:
 
         Returns:
             List[gf.Component]: list of generated objects
+
+        Example:
+            >> obj_list = Methods.gen_objects(
+            >>    gf.components.coupler_asymmetric,
+            >>    gap=gap,
+            >>    dx=5,
+            >>    dy=5,
+            >>    cross_section=cs
+            >> )
         """
         # error checking if all lists have the same length
         max_len = max([len(value) for value in specs.values() if isinstance(value, list)], default=1)
