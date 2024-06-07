@@ -1,5 +1,5 @@
 import gdsfactory as gf
-from typing import List
+from typing import List, Union
 
 class Methods:
     """
@@ -7,32 +7,36 @@ class Methods:
     """
     @staticmethod
     def connect(
-        com1: gf.ComponentReference,
-        port1: list,
-        com2: gf.ComponentReference,
-        port2: list
+        obj_from: gf.ComponentReference,
+        port1: Union[List, str],
+        obj_to: gf.ComponentReference,
+        port2: Union[List, str]
     ):
         """
-        Connect two components with the given ports
+        Connect two components with the given ports. It will move obj_from to obj_to to
+        connect the ports.
 
         Args:
             com1 [gf.ComponentReference]: this component will be moved
             port1 [list]: list: list of ports of component 1
-            com2 [gf.ComponentReference]: gf.ComponentReference: component 2
+            obj_to [gf.ComponentReference]: gf.ComponentReference: component 2
             port2 [list]: list: list of ports of component 2
 
             * The position of the ports in the list should be the same.
         """
+        port1 = [port1] if isinstance(port1, str) else port1
+        port2 = [port2] if isinstance(port2, str) else port2
         for p1, p2 in zip(port1, port2):
-            com1.connect(p1, com2.ports[p2])
+            print(p1, p2)
+            obj_from.connect(p1, obj_to.ports[p2])
 
 
     @staticmethod
     def add_ports(
-        com1: gf.Component,
-        names: list,
-        com2: gf.Component,
-        ports: list
+        obj1: gf.Component,
+        names: Union[List, str],
+        obj2: gf.Component,
+        ports: Union[List, str]
     ):
         """
         Add ports to com1 component from com2 component
@@ -43,8 +47,10 @@ class Methods:
             com2 [gf.Component]: gf.Component: component 2
             ports [list]: list: list of ports of component 2
         """
+        names = [names] if isinstance(names, str) else names
+        ports = [ports] if isinstance(ports, str) else ports
         for name, port in zip(names, ports):
-            com1.add_port(name=name, port=com2.ports[port])
+            obj1.add_port(name=name, port=obj2.ports[port])
     
     @staticmethod
     def symmetry(
@@ -58,7 +64,7 @@ class Methods:
         x0: float=None,
         yport: str=None,
         y0: float=None
-    ) -> gf.ComponentReference:
+    ) -> gf.Component:
         """
         Symmetry the component com1 with respect to the x0
 
@@ -147,3 +153,14 @@ class Methods:
         objects = [func(**spec) for spec in specs_list]
 
         return objects
+
+    @staticmethod
+    def centering(obj: gf.Component):
+        """
+        Center the object
+
+        Args:
+            obj [gf.Component]: gf.Component: object to be centered
+        """
+        ref = gf.ComponentReference(obj)
+        ref.center = (0, 0)

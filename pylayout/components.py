@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import gdsfactory as gf
 from gdsfactory.technology import LayerLevel
 from gdsfactory.port import Port
@@ -5,12 +7,33 @@ from gdsfactory.port import Port
 from pylayout.layers.cornerstone import SOI_220nm
 from pylayout.methods import Methods
 
+@dataclass
+class Info:
+    """
+    Storing information about a structure
+    """
+    width: float=None
+    cross_section: gf.cross_section.CrossSection=None
+    radius: float=None
+    layer: LayerLevel=None
+
+
 class Components(gf.Component):
     def __init__(self, cs: float=None):
         self.cs = cs
 
     @staticmethod
     def outline(x: float, y: float):
+        """
+        Draw an outline of the entire chip
+
+        Args:
+            x [float]: float: width of the chip
+            y [float]: float: height of the chip
+        
+        Returns:
+            gf.Component: outline of the chip
+        """
         outline = gf.Component("outline")
         rect = gf.components.rectangle(
             size=(x, y),
@@ -26,7 +49,19 @@ class Components(gf.Component):
         offset: float=0,
         layer: LayerLevel=None,
         radius: float=15,
-    ):
+    ) -> gf.cross_section.CrossSection:
+        """
+        Create a template for the cross-section of a waveguide.
+
+        Args:
+            width [float]: float: width of the waveguide
+            offset [float]: float: offset of the waveguide
+            layer [LayerLevel]: LayerLevel: layer of the waveguide
+            radius [float]: float: radius of the waveguide
+        
+        Returns:
+            gf.cross_section.CrossSection: cross-section of the waveguide
+        """
         return gf.cross_section.cross_section(
             width=width,
             offset=offset,
@@ -43,8 +78,23 @@ class Components(gf.Component):
         layer: LayerLevel,
         width: float=0.45,
         angle_resolution: int=2.5,
+        curve: bool=False,
     ):
-        ring_single = gf.Component("ring_single")
+        """
+        Draw a single ring resonator with coupling region = 0 with its a bus waveguide.
+
+        Args:
+            gap [float]: float: gap between the ring and the bus
+            radius [float]: float: radius of the ring
+            layer [LayerLevel]: LayerLevel: layer of the ring
+            width [float]: float: width of the bus waveguide
+            angle_resolution [int]: int: angle resolution of the ring
+            curve [bool]: bool: True for a curved bus waveguide
+
+        Returns:
+            gf.Component: single ring resonator with a bus waveguide
+        """
+        ring_single = gf.Component(uid('ring_single'))
         ring = gf.components.ring(
             radius=radius,
             width=width,
@@ -53,18 +103,36 @@ class Components(gf.Component):
         )
         ring_ref = ring_single.add_ref(ring)
 
-        bus = gf.components.rectangle(
-            size=(2*radius, width),
-            layer=layer,
-            centered=True,
-            port_type="optical",
-            port_orientations=(180, 0),
-        )
-        ring_ref.ymin = bus.ymax + gap
-        ring_single.add_ref(bus)
+        if curve:
+            bus_r = gf.components.bend_s(
+                size=(2*radius, 2),
+                npoints=111,
+                cross_section=self.cs,
+            )
+            bus_r_ref = ring_single.add_ref(bus_r)
+            bus_l_ref = Methods.symmetry(ring_single, bus_r, x0=bus_r.xmin)
 
-        ring_single.add_port(name="o1", port=bus.ports["o1"])
-        ring_single.add_port(name="o2", port=bus.ports["o2"])
+            bus_r_ref.ymax = ring_ref.ymin - gap
+            bus_r_ref.xmin = ring_ref.x
+
+            Methods.connect(bus_l_ref, "o2", bus_r_ref, "o1")
+            ring_single.add_port(name="o1", port=bus_l_ref.ports["o1"])
+            ring_single.add_port(name="o2", port=bus_r_ref.ports["o2"])
+
+            
+            # bus_l_ref.xmin = ring_single.xmin
+        else:
+            bus = gf.components.straight(
+                length=2*radius,
+                npoints=2,
+                cross_section=self.cs
+            )
+            bus_ref = ring_single.add_ref(bus)
+            bus_ref.ymax = ring_ref.ymin - gap
+            bus_ref.xmin = ring_ref.xmin
+            
+            ring_single.add_port(name="o1", port=bus.ports["o1"])
+            ring_single.add_port(name="o2", port=bus.ports["o2"])
 
         return ring_single
    
@@ -95,7 +163,7 @@ class Components(gf.Component):
         clen: float,
         dx: float=10
     ) -> gf.Component:
-        coupler = gf.Component("asymmetric_coupler_2x2")
+        coupler = gf.Component(uid("asymmetric_coupler_2x2"))
         right = Components.coupler_asymmetric(gap=gap, dx=dx, dy=dy, cross_section=self.cs)
         straight = gf.components.coupler_straight(length=clen, gap=gap, cross_section=self.cs)
 
