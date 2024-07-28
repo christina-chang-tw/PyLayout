@@ -35,4 +35,5 @@ def omega_shape(
     ref = c.add_ref(path.extrude(cs))
     c.add_ports(ref.ports)
 
+    c.flatten()
     return c

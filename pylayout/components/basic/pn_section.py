@@ -41,5 +41,4 @@ def ring_pn_section(
             c.add_ports(ref.ports)
 
     c.flatten()
-
     return c

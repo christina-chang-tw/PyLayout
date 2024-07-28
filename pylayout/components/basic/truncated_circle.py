@@ -22,6 +22,10 @@ def truncated_circle_poly(inner_r: float, outer_r: float, y: float, layer: Layer
     """
     if outer_r < inner_r:
         raise ValueError("Outer radius must be larger than inner radius")
+    
+    if inner_r > y and outer_r > y:
+        width = make_even_number(np.sqrt(outer_r**2 - y**2) - np.sqrt(inner_r**2 - y**2))
+        outer_r = np.sqrt((width + np.sqrt(inner_r**2 - y**2))**2 + y**2)
 
     def calculate_theta(r, y):
         return 2 * np.arcsin(np.sqrt(r**2 - y**2) / r) if r > y else 0
@@ -37,12 +41,9 @@ def truncated_circle_poly(inner_r: float, outer_r: float, y: float, layer: Layer
     outer_polygon = create_polygon(outer_r, outer_theta, layer)
     inner_polygon = create_polygon(inner_r, inner_theta, layer)
 
-    truncated_circle = gf.boolean(outer_polygon, inner_polygon, operation="-", layer1=layer, layer2=layer, layer=layer)
+    c = gf.boolean(outer_polygon, inner_polygon, operation="-", layer1=layer, layer2=layer, layer=layer)
 
-    c = gf.Component()
-    c.add_ref(truncated_circle)
     c.flatten()
-
     return c
 
 @gf.cell
@@ -73,10 +74,13 @@ def truncated_circle_bool(
 
     c = gf.Component()
 
+    
     if inner_r > y and outer_r > y:
         width = make_even_number(np.sqrt(outer_r**2 - y**2) - np.sqrt(inner_r**2 - y**2))
-        outer_r = np.sqrt((width + np.sqrt(inner_r**2 - y**2))**2 + y**2)
-
+        rin_x = np.sqrt(inner_r**2 - y**2)
+        outer_r = np.sqrt((width + rin_x)**2 + y**2)
+    inner_r, outer_r = map(np.round, [inner_r, outer_r], [3, 3])
+    
     circ = gf.components.circle(radius=outer_r, layer=layer)
 
     if inner_r > 0:
@@ -94,12 +98,10 @@ def truncated_circle_bool(
     c.add_ref(truncated_circle)
 
     if inner_r > y and outer_r > y:
-        x_center = gf.snap.snap_to_grid((np.sqrt(outer_r**2 - y**2) + np.sqrt(inner_r**2 - y**2)) / 2)
-        width = np.round(np.sqrt(outer_r**2 - y**2) - np.sqrt(inner_r**2 - y**2))
+        x_center = (np.sqrt(outer_r**2 - y**2) + np.sqrt(inner_r**2 - y**2)) / 2
 
         c.add_port(name=f"{port_prefix}_p1", center=(x_center, y), width=width, orientation=90, layer=layer, port_type="electrical")
         c.add_port(name=f"{port_prefix}_p2", center=(-x_center, y), width=width, orientation=90, layer=layer, port_type="electrical")
 
     c.flatten()
-
     return c

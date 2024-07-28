@@ -32,7 +32,7 @@ def straight_with_heater(
     waveguide = gf.path.straight(length=length).extrude(wg)
     waveguide_ref = c.add_ref(waveguide)
 
-    extra_heater_length = 3
+    extra_heater_length = 1
     heater = gf.Path().append([
         gf.path.straight(length=extra_heater_length),
         gf.path.arc(radius=filament.width, angle=-90, start_angle=180),

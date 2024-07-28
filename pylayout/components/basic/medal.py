@@ -63,7 +63,7 @@ def medal_shape(
         [(rect_width - trap_short_width)/2, -rect_height-trap_height],
         [0, -rect_height],
     ]
-    
     c.add_polygon(points, layer=layer)
 
+    c.flatten()
     return c

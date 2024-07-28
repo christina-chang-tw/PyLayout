@@ -10,7 +10,8 @@ from .basic import (
     ring_pn_section,
     outline,
     truncated_circle_bool,
-    truncated_circle_poly
+    truncated_circle_poly,
+    mmi_splitter
 )
 
 # complicated components

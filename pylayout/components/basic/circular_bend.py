@@ -19,6 +19,7 @@ def circular_bend_180(radius: float, cs: CrossSectionSpec):
     c.add_ref(path)
     c.add_ports(path.ports)
 
+    c.flatten()
     return c
 
 @gf.cell
@@ -39,4 +40,5 @@ def circular_bend_360(radius, cs: CrossSectionSpec):
     c.add_ref(path)
     c.add_ports(path.ports)
 
+    c.flatten()
     return c

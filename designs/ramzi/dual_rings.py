@@ -14,7 +14,7 @@ from cornerstone import (
     LAYER,
     cs_gc_silicon_1550nm
 )
-from pylayout.components import ring, straight_with_heater, circular_bend_180, attach_grating_coupler
+from pylayout.components import ring, straight_with_heater, attach_grating_coupler, mmi_splitter
 from pylayout.routing import route_pads_to_ring, strategy1, strategy2
 
 @gf.cell
@@ -37,7 +37,6 @@ def ramzi_design_2rings_draft1(
 
     c = gf.Component()
     cs, pn1, pn2 = map(gf.get_cross_section, [cs, pn1, pn2])
-    mmi_arm_gap = 2.69
 
     def add_ring(wg: CrossSectionSpec, pn: CrossSectionSpec, radius: float,
                  gap: float, int_len: float, routing: Dict, pads: Component=None, align_pad_number=None, heater_percent=None):
@@ -79,36 +78,21 @@ def ramzi_design_2rings_draft1(
     rbst_ref = c.add_ref(st_long2)
     tinter_ref, binter_ref = [c.add_ref(st_inter) for _ in range(2)]
 
-    bend_radius = (arm_distance - mmi_arm_gap) / 4
-    bend = circular_bend_180(radius=bend_radius, cs=cs)
-    ltbend_ref, lbbend_ref = [c.add_ref(bend).mirror_y() for _ in range(2)]
-    rtbend_ref, rbbend_ref = [c.add_ref(bend).mirror_x() for _ in range(2)]
-    ltbend_ref.mirror_y(), rbbend_ref.mirror_y()
-
-    mmi = SOI220nm_1550nm_TE_RIB_2x1_MMI()
-    lmmi_ref, rmmi_ref = [c.add_ref(mmi) for _ in range(2)]
-
-    in_st_ref = c.add_ref(gf.path.straight(length=100).extrude(cs))
-    out_st_ref = c.add_ref(gf.path.straight(length=100).extrude(cs))
+    mmi = mmi_splitter(SOI220nm_1550nm_TE_RIB_2x1_MMI, 50, cs, arm_distance)
+    lmmi_splitter_ref, rmmi_splitter_ref = [c.add_ref(mmi) for _ in range(2)]
+    rmmi_splitter_ref.mirror_y()
 
     connections = [
-        (lmmi_ref, "o1", in_st_ref, "o2"),
-        (lbbend_ref, "o1", lmmi_ref, "o2"),
-        (lbst_ref, "o1", lbbend_ref, "o2"),
+        (lbst_ref, "o1", lmmi_splitter_ref, "o3"),
         (ring_heater_full_ref, "o1", lbst_ref, "o2"),
         (binter_ref, "o1", ring_heater_full_ref, "o2"),
         (rbst_ref, "o1", binter_ref, "o2"),
-        (rbbend_ref, "o1", rbst_ref, "o2"),
-        (ltbend_ref, "o2", lmmi_ref, "o3"),
-        (ltst_ref, "o1", ltbend_ref, "o1"),
+        (ltst_ref, "o1", lmmi_splitter_ref, "o2"),
         (ring_full_ref, "o1", ltst_ref, "o2"),
         (tinter_ref, "o1", ring_full_ref, "o2"),
         (mzi_heater_ref, "o1", tinter_ref, "o2"),
         (rtst_ref, "o1", mzi_heater_ref, "o2"),
-        (rtbend_ref, "o1", rtst_ref, "o2"),
-        (rmmi_ref, "o2", rtbend_ref, "o1"),
-        (rmmi_ref, "o3", rbbend_ref, "o2"),
-        (out_st_ref, "o1", rmmi_ref, "o1")
+        (rmmi_splitter_ref, "o2", rtst_ref, "o2"),
     ]
     for c1, p1, c2, p2 in connections:
         c1.connect(p1, c2.ports[p2])
@@ -137,8 +121,8 @@ def ramzi_design_2rings_draft1(
         layer=LAYER.METAL
     )
 
-    c.add_port(name="o1", port=in_st_ref.ports["o1"])
-    c.add_port(name="o2", port=out_st_ref.ports["o2"])
+    c.add_port(name="o1", port=lmmi_splitter_ref.ports["o1"])
+    c.add_port(name="o2", port=rmmi_splitter_ref.ports["o1"])
 
     c = attach_grating_coupler(c, cs_gc_silicon_1550nm, ["o1", "o2"])
     c.flatten()

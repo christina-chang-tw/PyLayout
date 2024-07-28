@@ -11,13 +11,14 @@ def _create_arc(radius: float, angle: float, start_angle: float, cs: CrossSectio
     arc = gf.path.arc(radius=radius, angle=angle, start_angle=start_angle)
     return arc.extrude(cross_section=cs)
 
-def _create_ring_component(radius: float, gap: float, wg: float, angle: float):
+def _create_ring_component(radius: float, gap: float, wg: float, angle: float, ring_angle: float):
     outer_r = radius + gap + wg.width
 
     outer_arc = _create_arc(outer_r, angle, 90 - angle / 2, wg)
     outer_larc = _create_arc(outer_r, angle / 2, -90, wg)
     outer_rarc = _create_arc(outer_r, angle / 2, -90 - angle / 2, wg)
-    inner_arc = _create_arc(radius, 360, 90 - 360 / 2, wg)
+
+    inner_arc = _create_arc(radius, ring_angle, 90 - ring_angle / 2, wg)
     rect_length = radius - outer_arc.dxsize / 2 - outer_larc.dxsize
     rect = gf.path.straight(length=rect_length).extrude(cross_section=wg)
 
@@ -80,12 +81,12 @@ def _handle_pn_section(
 
     for name, port in ports.items():
         if "heater".upper() in name.upper() and "heater_metal".upper() in pn_layer_map.keys():
-            x = _handle_heater_ports(c, pn_layer_map, name, port, ports, dist_between_vias, dist_to_pad, rect_ref)
+            x = _handle_heater_ports(c, pn_layer_map, name, port, ports, dist_between_vias, dist_to_pad)
 
         else:
             rect = gf.components.rectangle(size=(port.dwidth, height_electrodes), layer=port.layer, port_type="electrical")
             rect_ref = c.add_ref(rect)
-            rect_ref.connect("e4", port, allow_width_mismatch=True)
+            rect_ref.connect("e4", port)
             x = min(np.absolute(rect_ref.dxmin), np.absolute(rect_ref.dxmax))
             c.add_port(name=name, port=rect_ref.ports["e2"])
 
@@ -105,7 +106,6 @@ def _handle_heater_ports(
     ports: List[Port],
     dist_between_vias: float,
     dist_to_pad: float,
-    rect_ref: ComponentReference,
 ) -> float:
     """
     Handle heater ports
@@ -118,19 +118,19 @@ def _handle_heater_ports(
         ports (List[Port]): List of ports
         dist_between_vias (float): Distance between vias
         dist_to_pad (float): Distance to pad
-        rect_ref (ComponentReference): Reference to the rectangle
     
     Returns:
         float: Distance
     """
-    height_heater = 0.06 * dist_to_pad
+    height_heater = 0.07 * dist_to_pad
+
     heater_ref = c.add_ref(gf.components.rectangle(size=(port.dwidth, height_heater), layer=port.layer, port_type="electrical"))
     metal_layer = pn_layer_map["heater_metal".upper()]
     heater_metal_ref = c.add_ref(gf.components.rectangle(size=(port.dwidth, height_heater), layer=metal_layer, port_type="electrical"))
 
     pt = ports["METAL_BOT_p1" if "p1" in name else "METAL_BOT_p2"]
-    heater_ref.dxmax = pt.dx - pt.dwidth / 2 - dist_between_vias + 0.25 if "p1" in name else pt.dx + pt.dwidth / 2 + dist_between_vias - 0.25
-    heater_ref.dy = rect_ref.dy
+    heater_ref.dx = pt.dx - pt.dwidth / 2 - dist_between_vias if "p1" in name else pt.dx + pt.dwidth / 2 + dist_between_vias
+    heater_ref.dymin = port.dy
     heater_metal_ref.dx = heater_ref.dx
     heater_metal_ref.dy = heater_ref.dy
 
@@ -155,7 +155,6 @@ def ring(
     dist_to_pad: float = 55,
     dist_between_vias: float = 3,
     heater_percent: float = 0.8,
-    metal_layer: LayerSpec = None,
 ) -> gf.Component:
     """
     Create a ring component with a single waveguide
@@ -184,6 +183,7 @@ def ring(
     wg = gf.get_cross_section(wg)
     if pn:
         pn = gf.get_cross_section(pn)
+        metal_layer = next((x.layer for x in pn.sections if "METAL" in x.name.upper()), None)
     
     gap = gf.snap.snap_to_grid(gap, grid_factor=2)
     
@@ -191,7 +191,7 @@ def ring(
     if angle > 180:
         raise ValueError("Interaction length is too large")
     
-    outer_arc, outer_larc, outer_rarc, inner_arc, rect = _create_ring_component(radius, gap, wg, angle)
+    outer_arc, outer_larc, outer_rarc, inner_arc, rect = _create_ring_component(radius, gap, wg, angle, ring_angle)
 
     c = gf.Component()
     inner_arc_ref = c.add_ref(inner_arc)

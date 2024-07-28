@@ -1,11 +1,8 @@
-from pylayout.components import straight_with_heater
+from pylayout.components import ring
+
 from cornerstone import (
-    rib_450,
-    filament,
-    metal_trace,
-    CornerstoneSpec
+    pn_450_with_metal
 )
 
-
-c = straight_with_heater(500, rib_450, filament(width=CornerstoneSpec.mzi_heater_width), metal_trace)
+c = ring(pn=pn_450_with_metal, int_angle = 20, metal_layer=(13, 0))
 c.show()

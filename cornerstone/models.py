@@ -7,7 +7,7 @@ import gdsfactory as gf
 from pylayout.components import gc_silicon_1550nm
 
 from cornerstone.layer import LAYER
-from cornerstone.cross_section import rib, CornerstoneSpec
+from cornerstone.cross_section import rib_450
 
 GDS_PATH = Path(dirname(__file__)) / 'GDSII_2022.gds'
 
@@ -104,9 +104,5 @@ def SOI220nm_1550nm_TM_STRIP_Grating_Coupler() -> gf.Component:
 cs_gc_silicon_1550nm = partial(
     gc_silicon_1550nm,
     layer_trench=LAYER.GRATING,
-    cross_section=rib(width=0.45),
-    cladding_cross_section=rib(
-        width=0.45 + CornerstoneSpec.c_ext*2,
-        layer=LAYER.RIB_PROTECT,
-    )
+    cross_section=rib_450,
 )

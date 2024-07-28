@@ -17,8 +17,17 @@ def make_even_number(num: float):
     temp = temp[temp.index(".")+1:]
     if len(temp) > 3:
         num += 0.001
-    return num
+    return np.round(num, 3)
 
+def find_outer_and_inner_r(rout: float, rin: float, y: float) -> Union[float, float]:
+    if rout < rin:
+        raise ValueError("Outer radius must be larger than inner radius")
+    
+    if rin > y and rout > y:
+        width = make_even_number(np.sqrt(rout**2 - y**2) - np.sqrt(rin**2 - y**2))
+        rin_x = np.sqrt(rin**2 - y**2)
+        rout = np.round(np.sqrt((width + rin_x)**2 + y**2), 3)
+    return rout, rin
 
 def gen_objects(
     func: callable,

@@ -1,12 +1,12 @@
 import gdsfactory as gf
 
 from pylayout.components import attach_grating_coupler
-from pylayout.cross_section import rib_cs450
+from cornerstone import rib_450
 
 
 def dummy_waveguide(
     length: float=550,
-    cs: gf.typings.CrossSectionSpec=rib_cs450,
+    cs: gf.typings.CrossSectionSpec=rib_450,
 ) -> gf.Component:
     """
     Dummy straight waveguide test structure. The idea is to prevent possible fabrication

@@ -1,15 +1,15 @@
 import numpy as np
 import gdsfactory as gf
-from gdsfactory.typings import List
+from gdsfactory.typings import List, CrossSectionSpec
 
 from pylayout.components import attach_grating_coupler
 from pylayout.methods import gen_uuid
-from pylayout.cross_section import rib_cs450
+from cornerstone import rib_450
 from . import rng
 
 def straight(
     lengths: np.ndarray,
-    cs: gf.typings.CrossSectionSpec = rib_cs450,
+    cs: CrossSectionSpec = rib_450,
 ) -> List[gf.Component]:
     """
     Straight waveguide test structures.
@@ -37,7 +37,7 @@ def straight(
 def main():
     lengths = np.linspace(100, 1000, 6)
     rng.shuffle(lengths)
-    cs = rib_cs450
+    cs = rib_450
 
     component_lists = straight(lengths, cs)
     c = gf.grid(

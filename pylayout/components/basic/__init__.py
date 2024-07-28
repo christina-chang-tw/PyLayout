@@ -6,3 +6,4 @@ from pylayout.components.basic.omega import omega_shape
 from pylayout.components.basic.pn_section import ring_pn_section
 from pylayout.components.basic.frame import outline
 from pylayout.components.basic.truncated_circle import truncated_circle_bool, truncated_circle_poly
+from pylayout.components.basic.mmi_splitter import mmi_splitter
