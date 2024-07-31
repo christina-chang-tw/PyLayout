@@ -16,18 +16,8 @@ from .straight import straight
 
 @gf.cell
 def single_ring_pn(
-    rc: Component = None,
-    radius: float = 10,
-    angle: float = 20,
-    gap: float = 0.3,
-    dist_pn_to_wg: float = 0.79,
-    dist_y: float = None,
-    wg: CrossSectionSpec = rib_450,
-    pn: CrossSectionSpec = pn_450_with_metal,
-    max_length: float = 600,
+    rc: Component,
     pad_spacing: float = 25,
-    heater_percent: float = 0.8,
-    norm_wg: bool = True,
 ):
     """
     A single ring with PN junction test structure.
@@ -42,21 +32,7 @@ def single_ring_pn(
         max_length (float): Maximum length of the test structure.
         pad_spacing (float): Spacing between the pads.
     """
-    wg = gf.get_cross_section(wg)
-    pn = gf.get_cross_section(pn)
-    
     c = gf.Component()
-    if rc is None:
-        rc = ring(
-            wg=wg,
-            pn=pn,
-            radius=radius,
-            gap=gap,
-            int_angle=angle,
-            dist_pn_to_wg=dist_pn_to_wg,
-            dist_y=dist_y,
-            heater_percent=heater_percent,
-        )
     r = gf.get_component(rc)
     
     pads = [metal_pad, metal_pad, metal_pad]
@@ -71,12 +47,34 @@ def single_ring_pn(
 
     c.add_port(name="o1", port=ring_ref.ports["o1"])
     c.add_port(name="o2", port=ring_ref.ports["o2"])
-    c = attach_grating_coupler(c, cs_gc_silicon_1550nm, ["o1", "o2"])
 
     c.flatten()
+    return c
 
-    if norm_wg:
-        c = add_norm_wg(c, gc=cs_gc_silicon_1550nm, cs=wg, rpos=-40, sides="N")
+@gf.cell
+def single_ring_pn_with_gc(
+    rc: Component,
+    pad_spacing: float = 25,
+):
+    """
+    A single ring with PN junction test structure.
+
+    Args:
+        radius (float): Radius of the ring.
+        angle (float): Angle of the outer arc.
+        gap (float): Gap between the inner ring and the outer arc.
+        dist_pn_to_wg (float): Distance between the PN junction and the waveguide.
+        wg (gf.typings.CrossSectionSpec): Cross section of the ring.
+        pn (gf.typings.CrossSectionSpec): Cross section of the PN junction.
+        max_length (float): Maximum length of the test structure.
+        pad_spacing (float): Spacing between the pads.
+    """
+    r = gf.get_component(rc)
+    
+    single_ring = single_ring_pn(rc=r, pad_spacing=pad_spacing)
+    c = attach_grating_coupler(single_ring, cs_gc_silicon_1550nm, ["o1", "o2"])
+
+    c.flatten()
     
     return c
 

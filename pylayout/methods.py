@@ -94,3 +94,7 @@ def offsetting(
 
     return com
 
+
+def connect_all(conns: List):
+    for conn in conns:
+        conn[0].connect(conn[1], conn[2].ports[conn[3]])
