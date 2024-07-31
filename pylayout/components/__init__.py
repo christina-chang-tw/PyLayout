@@ -11,7 +11,10 @@ from .basic import (
     outline,
     truncated_circle_bool,
     truncated_circle_poly,
-    mmi_splitter
+    mmi_splitter,
+    coupler_2x2,
+    ring_coupler,
+    ring_coupler_path
 )
 
 # complicated components
@@ -19,4 +22,6 @@ from pylayout.components.advanced import (
     place_dice_marker,
     ring,
     straight_with_heater,
+    draw_chip_art_from_image,
+    add_norm_wg
 )

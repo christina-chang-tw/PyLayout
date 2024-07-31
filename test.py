@@ -1,8 +1,18 @@
-from pylayout.components import ring
+import gdsfactory as gf
 
-from cornerstone import (
-    pn_450_with_metal
+c = gf.Component()
+
+mmi = gf.components.mmi2x2(width_mmi=10, gap_mmi=3)
+mmi1 = c.create_vinst(mmi)  # create a virtual instance
+mmi2 = c.create_vinst(mmi)  # create a virtual instance
+
+mmi2.dmove((100, 10))
+mmi2.drotate(30)
+
+routes = gf.routing.route_bundle_all_angle(
+    c,
+    mmi1.ports.filter(orientation=0),
+    [mmi2.ports["o2"], mmi2.ports["o1"]],
 )
-
-c = ring(pn=pn_450_with_metal, int_angle = 20, metal_layer=(13, 0))
 c.show()
+c

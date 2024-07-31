@@ -1,3 +1,5 @@
 from pylayout.components.advanced.place_dice_marker import place_dice_marker
 from pylayout.components.advanced.ring import ring
 from pylayout.components.advanced.straight_with_heater import straight_with_heater
+from pylayout.components.advanced.chip_art import draw_chip_art_from_image
+from pylayout.components.advanced.add_norm_wg import add_norm_wg

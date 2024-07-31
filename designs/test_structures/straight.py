@@ -1,54 +1,56 @@
 import numpy as np
 import gdsfactory as gf
-from gdsfactory.typings import List, CrossSectionSpec
+from gdsfactory.typings import List, CrossSectionSpec, Component
 
 from pylayout.components import attach_grating_coupler
 from pylayout.methods import gen_uuid
-from cornerstone import rib_450
+from cornerstone import rib_450, cs_gc_silicon_1550nm
 from . import rng
 
+@gf.cell
 def straight(
-    lengths: np.ndarray,
+    length: float,
+    gc: Component,
     cs: CrossSectionSpec = rib_450,
-) -> List[gf.Component]:
+) -> Component:
     """
     Straight waveguide test structures.
 
     Args:
-        lengths: List of lengths of the straight waveguides.
+        length: The length of the straight waveguides.
         cs: Cross section of the straight waveguides.
     
     Returns:
         List of straight waveguides.
     """
     cs = gf.get_cross_section(cs)
-    rng.shuffle(lengths)
 
-    component_lists = []
+    c = gf.path.straight(length=length)
+    c = c.extrude(cs)
+    c = attach_grating_coupler(c, gc, ["o1", "o2"])
 
-    for length in lengths:
-        temp = gf.Component()
-        path = gf.path.straight(length=length)
-        temp.add_ref(path.extrude(cs))
-        component_lists.append(temp)
-
-    return component_lists
+    return c
 
 def main():
     lengths = np.linspace(100, 1000, 6)
     rng.shuffle(lengths)
     cs = rib_450
 
-    component_lists = straight(lengths, cs)
+    component_list = []
+
+    for length in lengths:
+        c = straight(length, gc=cs_gc_silicon_1550nm, cs=cs)
+        component_list.append(c)
+
     c = gf.grid(
-        component_lists,
+        component_list,
         spacing=(500, 86),
         shape=(6, 1),
         align_x="xmin",
         align_y="y"
     )
     
-    c.show()
+    # c.show()
 
 if __name__ == "__main__":
     main()

@@ -14,6 +14,7 @@ metal = partial(
 
 filament = partial(
     cross_section,
+    width=CornerstoneSpec.mzi_heater_width,
     offset=0,
     radius_min=CornerstoneSpec.r_min,
     layer=LAYER.FILAMENT,

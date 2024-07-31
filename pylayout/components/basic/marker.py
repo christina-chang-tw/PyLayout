@@ -39,9 +39,10 @@ def dice_marker(
     path = gf.Path()
     path += gf.path.straight(length=length)
 
-    for dy in [0, length + marker_gap]:
-        mark_ref = c.add_ref(path.extrude(x))
-        mark_ref.movey(dy)
+    mark1_ref, mark2_ref = [c.add_ref(path.extrude(x)) for _ in range(2)]
+    mark2_ref.mirror_y()
+    mark2_ref.dx = mark1_ref.dx
+    mark2_ref.dymin = mark1_ref.dymax + marker_gap
     
     c.flatten()
     return c

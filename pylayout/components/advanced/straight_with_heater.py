@@ -2,7 +2,8 @@ import gdsfactory as gf
 from gdsfactory.typings import CrossSectionSpec, Component, Port, ComponentReference
 
 def straight_with_heater(
-    length: int = 500,
+    length: int=500,
+    heater_length: int=350,
     wg: CrossSectionSpec = "rib",
     filament: CrossSectionSpec = "rib",
     metal_cs: CrossSectionSpec = None,
@@ -33,11 +34,11 @@ def straight_with_heater(
     waveguide_ref = c.add_ref(waveguide)
 
     extra_heater_length = 1
-    heater = gf.Path().append([
+    heater = gf.Path([
         gf.path.straight(length=extra_heater_length),
-        gf.path.arc(radius=filament.width, angle=-90, start_angle=180),
-        gf.path.straight(length=length),
-        gf.path.arc(radius=filament.width, angle=-90, start_angle=90),
+        gf.path.arc(radius=filament.width, angle=-90),
+        gf.path.straight(length=heater_length),
+        gf.path.arc(radius=filament.width, angle=-90),
         gf.path.straight(length=extra_heater_length)
     ]).extrude(filament)
     heater_ref = c.add_ref(heater)
@@ -52,7 +53,7 @@ def straight_with_heater(
     if metal_cs is not None:
         metal_cs = gf.get_cross_section(metal_cs)
         metal_path = gf.Path().append([
-            gf.path.straight(length=(length / 2 - gap_between_pads / 2 + 5 - (metal_cs.width / 2 + 10))),
+            gf.path.straight(length=(heater_length / 2 - gap_between_pads / 2 + 5 - (metal_cs.width / 2 + 10))),
             gf.path.arc(radius=(metal_cs.width / 2 + 10), angle=90),
             gf.path.straight(length=20)
         ])

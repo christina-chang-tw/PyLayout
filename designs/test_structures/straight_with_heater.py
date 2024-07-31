@@ -1,5 +1,5 @@
 import gdsfactory as gf
-from gdsfactory.typings import CrossSectionSpec, Component, List
+from gdsfactory.typings import CrossSectionSpec, ComponentSpec, List, Component
 
 from cornerstone import (
     filament,
@@ -16,9 +16,10 @@ from pylayout.components import straight_with_heater, attach_grating_coupler, mm
 def mzi_heater(
     wg: CrossSectionSpec,
     filament: CrossSectionSpec,
-    length: int = 500,
     heater_length: int = 350,
+    arm_length: int = 500,
     arm_gap: float = 100,
+    mmi: ComponentSpec = SOI220nm_1550nm_TE_RIB_2x1_MMI,
 ) -> Component:
     """
     Create a straight waveguide with a heater on top.
@@ -26,39 +27,39 @@ def mzi_heater(
     Args:
         cs (CrossSectionSpec): Waveguide cross section.
         filament (CrossSectionSpec): Filament cross section
-        length (int): Length of the waveguide.
         heater_length (int): Length of the heater.
+        arm_length (int): MZI arm length
+        arm_gap (float): Gap between the MZI arms.
+        mmi: MMI component.
     
     Returns:
-        gf.Component: Component with a straight waveguide and a heater on top.
+        Component: Component with a straight waveguide and a heater on top.
     """
     c = gf.Component()
 
     wg = gf.get_cross_section(wg)
     filament = gf.get_cross_section(filament)
+    mmi = gf.get_component(mmi)
 
-    st = gf.path.straight(length=length).extrude(wg)
-    short_st = gf.path.straight(length=(length-heater_length)/2).extrude(wg)
-    lshort_ref, rshort_ref = c.add_ref(short_st), c.add_ref(short_st)
-    bst_ref = c.add_ref(st)
+    bst_ref = c.add_ref(gf.path.straight(length=arm_length).extrude(wg))
 
-   
-    splitter = mmi_splitter(SOI220nm_1550nm_TE_RIB_2x1_MMI, cs=wg, arm_distance=arm_gap)
+    splitter = mmi_splitter(mmi, cs=wg, arm_distance=arm_gap)
     lsplitter_ref, rsplitter_ref = c.add_ref(splitter), c.add_ref(splitter)
 
-    mzi_heater = straight_with_heater(length=heater_length,
-                                      wg=heater,
-                                      filament=filament,
-                                      gap_between_pads=50, 
-                                      metal_cs=metal_trace)
+    mzi_heater = straight_with_heater(
+                    length=arm_length,
+                    heater_length=heater_length,
+                    wg=wg,
+                    filament=filament,
+                    gap_between_pads=50, 
+                    metal_cs=metal_trace
+                )
     mzi_heater_ref = c.add_ref(mzi_heater)
     mzi_heater_ref.mirror_y()
     
-    lshort_ref.connect("o1", lsplitter_ref.ports["o2"])
-    mzi_heater_ref.connect("o1", lshort_ref.ports["o2"])
-    rshort_ref.connect("o1", mzi_heater_ref.ports["o2"])
+    mzi_heater_ref.connect("o1", lsplitter_ref.ports["o2"])
+    rsplitter_ref.connect("o3", mzi_heater_ref.ports["o2"])
     bst_ref.connect("o1", lsplitter_ref.ports["o3"])
-    rsplitter_ref.connect("o3", rshort_ref.ports["o2"])
 
     c.add_port("o1", port=lsplitter_ref.ports["o1"])
     c.add_port("o2", port=rsplitter_ref.ports["o1"])
@@ -93,7 +94,7 @@ if __name__ == "__main__":
     component_lists = []
     for heater_length in heater_lengths:
         c = mzi_heater(wg=rib_450, filament=filament(width=Spec.mzi_heater_width),
-                       length=heater_length + 100, heater_length=heater_length, arm_gap=130)
+                       arm_length=heater_length + 100, heater_length=heater_length, arm_gap=130)
         component_lists.append(c)
     
     spacing = 25

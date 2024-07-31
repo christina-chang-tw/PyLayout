@@ -2,7 +2,7 @@ import gdsfactory as gf
 from gdsfactory.typings import LayerSpec
 
 @gf.cell
-def outline(width: float=100, height: float=100, layer: LayerSpec=(0.0)) -> gf.Component:
+def outline(width: float=11470, height: float=4900, layer: LayerSpec=(0.0)) -> gf.Component:
     """
     Create a rectangle outline
 

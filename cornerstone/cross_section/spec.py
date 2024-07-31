@@ -13,9 +13,10 @@ class CornerstoneSpec:
     # via/metal definition
     medium_to_via_gap: float = 1.475
     via_width: float = 5
-    metal_to_via_gap: float = 0.6
+    metal_to_via_gap: float = 0.5
     metal_trace_width: float = 7
-    min_via_distance: float = 3
+    min_via_distance: float = 3.15
+
     # heater definition
-    mzi_heater_width: float = 2.5
-    ring_heater_width: float = 1.5
+    mzi_heater_width: float = 4
+    ring_heater_width: float = 2.5

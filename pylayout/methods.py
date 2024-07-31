@@ -3,7 +3,7 @@ import uuid
 import numpy as np
 import gdsfactory as gf
 from gdsfactory.technology import LayerLevel
-from gdsfactory.typings import List, Union, Dict, Component, ComponentReference
+from gdsfactory.typings import List, Union
 
 def micro(val: float) -> float:
     return val*1e+3
@@ -93,3 +93,4 @@ def offsetting(
     com.add_polygon(region, layer=layer_to)
 
     return com
+

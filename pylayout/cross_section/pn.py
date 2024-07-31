@@ -1,5 +1,3 @@
-from functools import partial
-
 from gdsfactory.cross_section import cross_section, CrossSection
 from gdsfactory.cross_section import Section, LayerSpec, Floats, LayerSpecs
 
@@ -101,29 +99,6 @@ def _pn(
     sections = list(sections or [])
     sections += [slab]
 
-    if layer_n:
-        n_inner_r = 0
-        n_outer_r = gap_medium_doping + gap_medium_to_via + width_via + 1.5
-        if layer_heater:
-            n_outer_r = max(n_outer_r, width_heater/2 + via_min_distance + width_via + 1.5)
-        n = Section(
-            name="N",
-            width=n_outer_r - n_inner_r,
-            offset=-(n_outer_r + n_inner_r)/2-offset_low_doping,
-            layer=layer_n,
-        )
-        sections.append(n)
-
-    # for cornerstone operation, low doped p must overlap low dose n -> need to double checked with Dave
-    if layer_p:
-        p = Section(
-            name="P",
-            width=width_low_doping + gap_medium_doping,
-            offset=(width_low_doping-gap_medium_doping)/2-offset_low_doping,
-            layer=layer_p,
-        )
-        sections.append(p)
-
     if gap_medium_doping is not None:
         medium_inside_r = gap_medium_doping
         medium_outside_r = gap_medium_doping + gap_medium_to_via + width_via + 0.5 # 0.5 is the min gap between via and medium doped
@@ -148,6 +123,30 @@ def _pn(
                 layer=layer_pp,
             )
             sections.append(pp)
+
+    if layer_n:
+        width = width_medium_doping + gap_medium_doping + 2
+        if layer_via:
+            width = max(width, gap_medium_doping + gap_medium_to_via + width_via + 2)
+        if layer_heater:
+            width = max(width, width_heater/2 + via_min_distance + width_via + 2)
+        n = Section(
+            name="N",
+            width=width,
+            offset=-width/2-offset_low_doping,
+            layer=layer_n,
+        )
+        sections.append(n)
+
+    # for cornerstone operation, low doped p must overlap low dose n -> need to double checked with Dave
+    if layer_p:
+        p = Section(
+            name="P",
+            width=width_low_doping + gap_medium_doping,
+            offset=(width_low_doping-gap_medium_doping)/2-offset_low_doping,
+            layer=layer_p,
+        )
+        sections.append(p)
 
     if layer_via is not None:
         offset_via = gap_medium_doping + gap_medium_to_via + width_via / 2

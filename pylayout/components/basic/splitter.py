@@ -1,3 +1,5 @@
+import numpy as np
+
 import gdsfactory as gf
 from gdsfactory.typings import Component, CrossSectionSpec
 
@@ -45,3 +47,31 @@ def mmi_splitter(
 
     c.flatten()
     return c
+
+@gf.cell
+def coupler_2x2(
+    gap: float,
+    length: float,
+    arm_distance: float,
+    cs: CrossSectionSpec,
+    st_length: float=50,
+):
+    c = gf.Component()
+    cs = gf.get_cross_section(cs)
+    splitter = gf.components.coupler(gap=gap, length=length, dx=1.5*(arm_distance-gap)/2, cross_section=cs, dy=arm_distance+cs.width)
+    splitter_ref = c.add_ref(splitter)
+    st = gf.path.straight(length=st_length).extrude(cs)
+    ltst_ref, lbst_ref = [c.add_ref(st) for _ in range(2)]
+
+    ltst_ref.connect("o2", splitter_ref.ports["o1"])
+    lbst_ref.connect("o2", splitter_ref.ports["o2"])
+
+    c.add_port(name="o1", port=ltst_ref.ports["o1"])
+    c.add_port(name="o2", port=lbst_ref.ports["o1"])
+    c.add_port(name="o3", port=splitter_ref.ports["o3"])
+    c.add_port(name="o4", port=splitter_ref.ports["o4"])
+
+    c.flatten()
+    return c
+
+    

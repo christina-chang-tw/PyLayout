@@ -118,8 +118,12 @@ def route_pads_to_ring(
         gf.Component: Component with pads connected to the ring
     """
     if align_pad_number is None:
-        num = (pads.dxsize/(pad_width + pad_gap))/2
-        align_pad_number = np.ceil(num) if num > 1 else 1.5
+        # find number of pads
+        num_of_pads = (pads.dxsize + pad_gap) / (pad_width + pad_gap)
+        if num_of_pads % 2 != 0:
+            align_pad_number = np.ceil(num_of_pads/2)
+        else:
+            align_pad_number = num_of_pads/2 + 0.5
 
     c = gf.Component()
     ring_ref = c.add_ref(ring)

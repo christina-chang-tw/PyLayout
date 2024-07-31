@@ -36,6 +36,7 @@ pn_450_with_heater = partial(
     width=0.45,
     layer_heater=LAYER.FILAMENT,
     width_heater=CornerstoneSpec.ring_heater_width,
+    via_min_distance=CornerstoneSpec.min_via_distance,
 )
 
 pn_450_with_metal = partial(
