@@ -1,0 +1,18 @@
+# Specs for the RAMZI CS MPW run1
+c_ext: 5.2 # cladding extrusion, should be more than 5.0um (specified by the PDK) to avoid possible errors
+r_min: 3 # minimum radius
+slab_width: 10.45
+# low/medium doping definition
+low_doped_width: 12
+medium_doped_width: 8.8
+medium_doped_gap: 1.12
+# via/metal definition
+medium_to_via_gap: 1.475
+via_width: 5
+metal_to_via_gap: 0.5
+metal_trace_width: 7
+min_via_distance: 3.15
+
+# heater definition
+mzi_heater_width: 4
+ring_heater_width: 2.5

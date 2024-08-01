@@ -72,6 +72,7 @@ def strategy2(
              |
     
     """
+
     angles = [0, +45, +45, -45, -45]
     path = gf.Path()
     path.start_angle = 0

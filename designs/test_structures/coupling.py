@@ -76,6 +76,11 @@ def cross_coupling(
     c.add_ref(outer_arc.extrude(wg))
     c.add_ref(inner_arc.extrude(wg))
 
+    c.add_port(name="o1", port=outer_arc.ports["o1"])
+    c.add_port(name="o2", port=inner_arc.ports["o1"])
+    c.add_port(name="o3", port=outer_arc.ports["o2"])
+    c.add_port(name="o4", port=inner_arc.ports["o2"])
+    
     c.flatten()
     return c
 

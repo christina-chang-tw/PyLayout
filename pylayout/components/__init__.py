@@ -21,7 +21,7 @@ from .basic import (
 from pylayout.components.advanced import (
     place_dice_marker,
     ring,
-    straight_with_heater,
+    straight_with_filament,
     draw_chip_art_from_image,
     add_norm_wg
 )

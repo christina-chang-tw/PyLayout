@@ -12,8 +12,8 @@ from cornerstone import (
     SOI220nm_1550nm_TE_RIB_2x1_MMI,
     cs_gc_silicon_1550nm
 )
-from cornerstone import CornerstoneSpec as Spec
-from pylayout.components import straight_with_heater, attach_grating_coupler, mmi_splitter, ring, add_norm_wg, coupler_2x2
+from cornerstone import Spec
+from pylayout.components import straight_with_filament, attach_grating_coupler, mmi_splitter, ring, add_norm_wg, coupler_2x2
 from pylayout.methods import connect_all
 
 from ..test_structures import straight, single_ring_pn
@@ -23,20 +23,19 @@ from ..test_structures import straight, single_ring_pn
 def ramzi_one_ring(
     ring: Component,
     mzi_heater: Component,
-    mmi: Component,
+    splitter: Component,
 
 ):
     c = gf.Component()
 
     mzi_heater = gf.get_component(mzi_heater)
     ring = gf.get_component(ring)
-    mmi = gf.get_component(mmi)
+    splitter = gf.get_component(splitter)
 
     ring_ref = c.add_ref(ring)
     ring_ref.mirror_y()
     mzi_heater_ref = c.add_ref(mzi_heater)
 
-    splitter = mmi
     lsplitter_ref, rsplitter_ref = [c.add_ref(splitter) for _ in range(2)]
 
     connections = [
@@ -59,21 +58,21 @@ def ramzi_one_ring(
 def ramzi_one_ring_2x1(
     ring: Component,
     mzi_heater: Component,
-    mmi: Component,
+    splitter: Component,
     coupler: Component,
 ):
     c = gf.Component()
 
     ring = gf.get_component(ring)
     mzi_heater = gf.get_component(mzi_heater)
-    mmi = gf.get_component(mmi)
+    splitter = gf.get_component(splitter)
     coupler = gf.get_component(coupler)
 
     ring_ref = c.add_ref(ring)
     mzi_heater_ref = c.add_ref(mzi_heater)
 
     lsplitter_ref = c.add_ref(coupler)
-    rsplitter_ref = c.add_ref(mmi)
+    rsplitter_ref = c.add_ref(splitter)
     rsplitter_ref.mirror_x()
 
     connections = [
@@ -137,7 +136,7 @@ if __name__ == "__main__":
         st_length=50
     )
 
-    mzi_heater = partial(straight_with_heater,
+    mzi_heater = partial(straight_with_filament,
         wg=wg,
         heater=heater,
         heater_length=heater_length,

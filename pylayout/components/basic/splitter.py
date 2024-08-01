@@ -9,7 +9,7 @@ from . import circular_bend_180
 def mmi_splitter(
     mmi: Component,
     st_length: float = 50,
-    cs: CrossSectionSpec = "rib",
+    wg: CrossSectionSpec = "rib",
     arm_distance: float = 130
 ) -> Component:
     """
@@ -26,14 +26,14 @@ def mmi_splitter(
     """
     c = gf.Component()
 
-    cs = gf.get_cross_section(cs)
+    wg = gf.get_cross_section(wg)
 
     mmi_ref = c.add_ref(gf.get_component(mmi))
-    st_ref = c.add_ref(gf.path.straight(length=st_length).extrude(cs))
+    st_ref = c.add_ref(gf.path.straight(length=st_length).extrude(wg))
 
-    mmi_arm_gap = abs(mmi_ref.ports["o2"].dy - mmi_ref.ports["o3"].dy) - cs.width
+    mmi_arm_gap = abs(mmi_ref.ports["o2"].dy - mmi_ref.ports["o3"].dy) - wg.width
     bend_radius = (arm_distance - mmi_arm_gap) / 4
-    bend = circular_bend_180(radius=bend_radius, cs=cs)
+    bend = circular_bend_180(radius=bend_radius, cs=wg)
     
     tbend_ref = c.add_ref(bend)
     bbend_ref = c.add_ref(bend).mirror_y()

@@ -13,12 +13,12 @@ from cornerstone import (
     filament,
     heater,
     metal,
-    CornerstoneSpec,
+    Spec,
     SOI220nm_1550nm_TE_RIB_2x1_MMI,
     LAYER,
     cs_gc_silicon_1550nm
 )
-from pylayout.components import ring, straight_with_heater, attach_grating_coupler, mmi_splitter
+from pylayout.components import ring, straight_with_filament, attach_grating_coupler, mmi_splitter
 from pylayout.routing import route_pads_to_ring, strategy1, strategy2
 
 def ramzi_dual_rings_gsgsg_gsgsg(
@@ -74,7 +74,7 @@ def ramzi_dual_rings_gsgsg_gsgsg(
     if extra_length < 0:
         raise ValueError("Arm length should be greater than 2*radius + heater_length")
 
-    mzi_heater_ref = c.add_ref(straight_with_heater(length=heater_length, wg=wg,
+    mzi_heater_ref = c.add_ref(straight_with_filament(length=heater_length, wg=wg,
         filament=mzi_heater, gap_between_pads=50)).mirror_y()
 
     st_short = gf.path.straight(length=extra_length * 1/5).extrude(wg)
@@ -189,7 +189,7 @@ def ramzi_dual_rings_gsgsg_gssg(
     if extra_length < 0:
         raise ValueError("Arm length should be greater than 2*radius + heater_length")
 
-    mzi_heater_ref = c.add_ref(straight_with_heater(length=heater_length, wg=wg,
+    mzi_heater_ref = c.add_ref(straight_with_filament(length=heater_length, wg=wg,
         filament=mzi_heater, gap_between_pads=50)).mirror_y()
 
     st_short = gf.path.straight(length=extra_length * 1/5).extrude(wg)

@@ -6,16 +6,15 @@ from cornerstone import (
     rib_450,
     SOI220nm_1550nm_TE_RIB_2x1_MMI,
     cs_gc_silicon_1550nm,
-    metal_trace,
-    heater
 )
-from cornerstone import CornerstoneSpec as Spec
-from pylayout.components import straight_with_heater, attach_grating_coupler, mmi_splitter
+from cornerstone import Spec
+from pylayout.components import straight_with_filament, attach_grating_coupler, mmi_splitter
 
 @gf.cell
-def mzi_heater(
-    wg: CrossSectionSpec,
-    filament: CrossSectionSpec,
+def waveguide_with_filament(
+    wg: CrossSectionSpec = None,
+    filament: CrossSectionSpec = None,
+    metal: CrossSectionSpec = None,
     heater_length: int = 350,
     arm_length: int = 500,
     arm_gap: float = 100,
@@ -37,8 +36,7 @@ def mzi_heater(
     """
     c = gf.Component()
 
-    wg = gf.get_cross_section(wg)
-    filament = gf.get_cross_section(filament)
+    wg, filament, metal = map(gf.get_cross_section(wg), [wg, filament, metal])
     mmi = gf.get_component(mmi)
 
     bst_ref = c.add_ref(gf.path.straight(length=arm_length).extrude(wg))
@@ -46,13 +44,13 @@ def mzi_heater(
     splitter = mmi_splitter(mmi, cs=wg, arm_distance=arm_gap)
     lsplitter_ref, rsplitter_ref = c.add_ref(splitter), c.add_ref(splitter)
 
-    mzi_heater = straight_with_heater(
+    mzi_heater = straight_with_filament(
                     length=arm_length,
                     heater_length=heater_length,
                     wg=wg,
                     filament=filament,
                     gap_between_pads=50, 
-                    metal_cs=metal_trace
+                    metal_cs=metal
                 )
     mzi_heater_ref = c.add_ref(mzi_heater)
     mzi_heater_ref.mirror_y()

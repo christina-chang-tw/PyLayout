@@ -1,0 +1,5 @@
+# this file is used to define the metal layer properties
+# in pylayout.cross_section.__init__.py
+pad_width: 75
+pad_height: 75
+pad_spacing: 25
