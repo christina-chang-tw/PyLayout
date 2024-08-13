@@ -45,6 +45,9 @@ def add_norm_wg(
         "E": (True, ref.dysize, (ref.dxmax + rpos, None), True),
     }
 
+    if any((side for side in sides if side.upper() not in side_params)):
+        raise ValueError(f"Invalid side parameter: {sides}")
+
     for side in sides:
         if side in side_params:
             is_vertical, length, coord, rotate = side_params.get(side, (False, 0, (0, 0), False))

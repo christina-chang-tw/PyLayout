@@ -5,7 +5,6 @@ from gdsfactory.technology import (
     LayerLevel,
     LayerMap,
     LayerStack,
-    LayerViews,
     LogicalLayer,
 )
 from gdsfactory.typings import Layer

@@ -1,11 +1,8 @@
-from functools import partial
-
-import numpy as np
 import gdsfactory as gf
-from gdsfactory.typings import Union, List, CrossSectionSpec, Component
+from gdsfactory.typings import Component
 
 from . import rng
-from pylayout.components import ring, attach_grating_coupler, ring_coupler_path
+from pylayout.components import ring_coupler_path
 from cornerstone import rib_450, cs_gc_silicon_1550nm
 
 def cross_coupling(
@@ -67,30 +64,49 @@ def cross_coupling(
             gf.path.straight(length=(max_length-inner_arc.dsize[0])/2),
         ]
     )
-    inner_arc.plot()
     inner_arc.drotate(180)
 
     outer_arc.dx = inner_arc.dx
     outer_arc.dymax = inner_arc.dymax + gap + wg.width
 
-    c.add_ref(outer_arc.extrude(wg))
-    c.add_ref(inner_arc.extrude(wg))
+    outer_arc_ref = c.add_ref(outer_arc.extrude(wg))
+    inner_arc_ref = c.add_ref(inner_arc.extrude(wg))
 
-    c.add_port(name="o1", port=outer_arc.ports["o1"])
-    c.add_port(name="o2", port=inner_arc.ports["o1"])
-    c.add_port(name="o3", port=outer_arc.ports["o2"])
-    c.add_port(name="o4", port=inner_arc.ports["o2"])
+    c.add_port(name="o1", port=outer_arc_ref.ports["o1"])
+    c.add_port(name="o2", port=inner_arc_ref.ports["o1"])
+    c.add_port(name="o3", port=outer_arc_ref.ports["o2"])
+    c.add_port(name="o4", port=inner_arc_ref.ports["o2"])
     
     c.flatten()
     return c
 
 
 def main():
-    c = cross_coupling(
-        radius=10,
-        gap=0.2,
-        angle=20,
-        max_length=500,
+    couplings =  [0.28, 0.3, 0.316, 0.34, 0.35, 0.38, 0.4, 0.42, 0.45]
+    import numpy as np
+    from pylayout.components import add_norm_wg, attach_grating_coupler
+
+    np.random.default_rng().shuffle(couplings)
+    c_list = []
+    for idx, coupling in enumerate(couplings):
+        c = cross_coupling(
+            radius=10,
+            gap=coupling,
+            angle=20,
+            wg=rib_450,
+            max_length=500,
+        )
+        c = attach_grating_coupler(c, cs_gc_silicon_1550nm, ["o1", "o2", "o3", "o4"])
+
+        if idx % 5 == 0:
+            c = add_norm_wg(c, cs_gc_silicon_1550nm, rib_450, 30, "N")
+        c_list.append(c)
+
+    c = gf.grid(
+        reversed(c_list),
+        shape=(len(c_list), 1),
+        spacing=10,
+        align_y="center"
     )
     c.show()
 

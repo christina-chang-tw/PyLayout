@@ -1,5 +1,5 @@
 # Specs for the RAMZI CS MPW run1
-c_ext: 5 # cladding extrusion
+c_ext: 5.2 # cladding extrusion
 r_min: 3 # minimum radius
 slab_width: 10.45
 # low/medium doping definition

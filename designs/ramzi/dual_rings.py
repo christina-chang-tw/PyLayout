@@ -1,25 +1,20 @@
 from functools import partial
 
-import numpy as np
-
 import gdsfactory as gf
-from gdsfactory.typings import CrossSectionSpec, Dict, Component, CrossSection
+from gdsfactory.typings import CrossSectionSpec, Component
 
 from cornerstone import (
-    metal_pad,
     pn_450_with_metal_and_heater,
     pn_450_with_metal,
     rib_450,
     filament,
     heater,
     metal,
-    Spec,
     SOI220nm_1550nm_TE_RIB_2x1_MMI,
     LAYER,
     cs_gc_silicon_1550nm
 )
 from pylayout.components import ring, straight_with_filament, attach_grating_coupler, mmi_splitter
-from pylayout.routing import route_pads_to_ring, strategy1, strategy2
 from pylayout.methods import connect_all
 from ..test_structures import ring_and_mzi_heater, single_ring_filament_gssg
 

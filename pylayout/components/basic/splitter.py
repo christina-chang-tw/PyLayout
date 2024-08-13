@@ -58,7 +58,7 @@ def coupler_2x2(
 ):
     c = gf.Component()
     cs = gf.get_cross_section(cs)
-    splitter = gf.components.coupler(gap=gap, length=length, dx=1.5*(arm_distance-gap)/2, cross_section=cs, dy=arm_distance+cs.width)
+    splitter = gf.components.coupler(gap=gap, length=float(length), dx=1.5*(arm_distance-gap)/2, cross_section=cs, dy=arm_distance+cs.width)
     splitter_ref = c.add_ref(splitter)
     st = gf.path.straight(length=st_length).extrude(cs)
     ltst_ref, lbst_ref = [c.add_ref(st) for _ in range(2)]
@@ -73,5 +73,58 @@ def coupler_2x2(
 
     c.flatten()
     return c
+
+
+def main():
+    from cornerstone.cross_section import rib_450
+    from cornerstone import cs_gc_silicon_1550nm
+    from . import attach_grating_coupler
+    from ..advanced import add_norm_wg
+
+    lengths = np.arange(8, 14, 1)
+    gaps = [0.2, 0.25]
+    np.random.default_rng().shuffle(lengths)
+
+    gap_lists = []
+    for gap in gaps:
+        lists = []
+        for length in lengths:
+            c = gf.Component()
+            st = gf.path.straight(length=50).extrude(rib_450)
+            coupler = coupler_2x2(gap=gap, length=length, arm_distance=120, cs=rib_450)
+            st_ref1 = c.add_ref(st)
+            st_ref2 = c.add_ref(st)
+            coupler_ref = c.add_ref(coupler)
+
+            st_ref1.connect("o1", coupler_ref.ports["o3"])
+            st_ref2.connect("o1", coupler_ref.ports["o4"])
+            c.add_port(name="o1", port=coupler_ref.ports["o1"])
+            c.add_port(name="o2", port=coupler_ref.ports["o2"])
+            c.add_port(name="o3", port=st_ref1["o2"])
+            c.add_port(name="o4", port=st_ref2["o2"])
+            c = attach_grating_coupler(c, cs_gc_silicon_1550nm, ["o1", "o2", "o3", "o4"])
+            c.flatten()
+            lists.append(c)
+
+        c = gf.grid(
+            lists,
+            shape=(len(lists), 1),
+            spacing=30,
+        )
+
+        c = add_norm_wg(c, cs_gc_silicon_1550nm, rib_450, sides="S", rpos=40)
+        gap_lists.append(c)
+
+    print(gap_lists)
+    c = gf.grid(
+        gap_lists,
+        shape=(1, len(gap_lists)),
+        spacing=30,
+    )
+
+    c.show()
+
+if __name__ == "__main__":
+    main()
 
     
