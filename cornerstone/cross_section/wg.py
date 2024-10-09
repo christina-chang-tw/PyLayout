@@ -1,6 +1,7 @@
 from functools import partial
 
-from gdsfactory.cross_section import cross_section
+from gdsfactory.cross_section import cross_section, Section
+
 from cornerstone.cross_section import Spec
 from cornerstone import LAYER
 

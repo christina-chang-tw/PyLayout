@@ -1,10 +1,7 @@
-import numpy as np
-
 import gdsfactory as gf
-from gdsfactory.typings import List, CrossSectionSpec, Component
+from gdsfactory.typings import Component
 
-from . import rng
-from pylayout.components import ring, attach_grating_coupler, add_norm_wg
+from pylayout.components import attach_grating_coupler
 from pylayout.routing import route_pads_to_ring
 from cornerstone import (
     rib_450,
@@ -12,7 +9,6 @@ from cornerstone import (
     pn_450_with_metal,
     cs_gc_silicon_1550nm
 )
-from .straight import straight
 
 @gf.cell
 def single_ring_pn(

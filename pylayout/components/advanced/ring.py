@@ -124,6 +124,7 @@ def _handle_heater_ports(
 @gf.cell
 def ring(
     wg: CrossSectionSpec = "rib",
+    ring_wg: CrossSectionSpec = None,
     pn: CrossSectionSpec = None,
     radius: float = 15,
     gap: float = 0.25,
@@ -136,6 +137,7 @@ def ring(
     dist_between_vias: float = 2.75,
     heater_percent: float = 0.8,
     max_length: float = None,
+    cladding_rfill: bool = False
 ) -> gf.Component:
     """
     Create a ring component with a single waveguide
@@ -162,6 +164,7 @@ def ring(
         raise ValueError("Provide either interaction length or interaction angle, but not both.")
     
     wg = gf.get_cross_section(wg)
+    ring_wg = gf.get_cross_section(ring_wg) if ring_wg else wg
     if pn:
         pn = gf.get_cross_section(pn)
         metal_layer = next((x.layer for x in pn.sections if "METAL" in x.name.upper()), None)
@@ -185,15 +188,22 @@ def ring(
         )
 
     c = gf.Component()
-
-    inner_arc_ref = c.add_ref(inner_arc.extrude(wg))
+    inner_arc_ref = c.add_ref(inner_arc.extrude(ring_wg))
     outer_arc_ref = c.add_ref(outer_arc.extrude(wg))
-    inner_arc_ref.dx, inner_arc_ref.dy = 0, 0
+    inner_arc_ref.dx, inner_arc_ref.dymax = 0, 0
     outer_arc_ref.dx = inner_arc_ref.dx
-    outer_arc_ref.dymax = inner_arc_ref.dymax + gap + wg.width
+    
+    if r_width := next((x.width for x in wg.sections if x.name == "ring"), ring_wg.sections[-1].width):
+        outer_arc_ref.dymax = inner_arc_ref.dymax - r_width + ring_wg.width/2 + gap + wg.width/2 + wg.sections[-1].width/2
+        if cladding_rfill:
+            rfill = gf.components.circle(radius=radius, layer=ring_wg.sections[-1].layer)
+            rfill_ref = c.add_ref(rfill)
+            rfill_ref.dx = inner_arc_ref.dx
+            rfill_ref.dymin = inner_arc_ref.dymin + r_width
 
     if pn:
-        _handle_pn_section(c, radius, wg, pn, outer_arc_ref, dist_pn_to_wg, dist_y, dist_between_vias, dist_to_pad, heater_percent=heater_percent, metal_layer=metal_layer)
+        _handle_pn_section(c, radius, wg, pn, outer_arc_ref, dist_pn_to_wg, dist_y,
+                           dist_between_vias, dist_to_pad, heater_percent=heater_percent, metal_layer=metal_layer)
 
     c.add_port("o1", port=outer_arc_ref.ports["o1"])
     c.add_port("o2", port=outer_arc_ref.ports["o2"])

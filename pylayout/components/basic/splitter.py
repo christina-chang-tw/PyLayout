@@ -115,7 +115,6 @@ def main():
         c = add_norm_wg(c, cs_gc_silicon_1550nm, rib_450, sides="S", rpos=40)
         gap_lists.append(c)
 
-    print(gap_lists)
     c = gf.grid(
         gap_lists,
         shape=(1, len(gap_lists)),

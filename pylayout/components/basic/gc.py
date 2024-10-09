@@ -98,7 +98,7 @@ def grating_coupler_elliptical_trenches(
 
     for sec in xs.sections:
         x_output = a_taper + x_taper - taper_length + grating_line_width / 2
-        xmax = x_output + taper_length + n_periods * period + 3 + sec.width
+        xmax = x_output + taper_length + n_periods * period + sec.width/2 + 10
         y = sec.width / 2 + np.tan(taper_angle / 2 * np.pi / 180) * xmax
         pts = [
             (x_output, -sec.width / 2),
